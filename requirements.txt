@@ -1,0 +1,16 @@
+catboost
+joblib
+lightgbm
+optuna
+streamlit
+xgboost
+markupsafe
+zenml
+pandas
+numpy
+scikit-learn
+matplotlib
+
+
+
+#mlflow ui --backend-store-uri "file:C:\Users\manoj\AppData\Roaming\zenml\local_stores\4c4601ce-a82d-4611-a4db-6be20f7ee2ac\mlruns"
