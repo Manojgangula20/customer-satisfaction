@@ -46,11 +46,6 @@ zenml stack register mlflow_stack -a default -o default -d mlflow_cust -e mlflow
 zenml stack delete -y mlflow_stack
 ```
 
-## 📙 Resources & References
-
-We had written a blog that explains this project in-depth: [Predicting how a customer will feel about a product before they even ordered it](https://blog.zenml.io/customer_satisfaction/).
-
-If you'd like to watch the video that explains the project, you can watch the [video](https://youtu.be/L3_pFTlF9EQ).
 
 ## :thumbsup: The Solution
 
@@ -114,36 +109,11 @@ python run_pipeline.py
 python run_deployment.py
 ```
 
-## 🕹 Demo Streamlit App
+## 🕹 Streamlit App
 
-There is a live demo of this project using [Streamlit](https://streamlit.io/) which you can find [here](https://share.streamlit.io/ayush714/customer-satisfaction/main). It takes some input features for the product and predicts the customer satisfaction rate using the latest trained models. If you want to run this Streamlit app in your local system, you can run the following command:-
+ It takes some input features for the product and predicts the customer satisfaction rate using the latest trained models. If you want to run this Streamlit app in your local system, you can run the following command:-
 
 ```bash
 streamlit run streamlit_app.py
 ```
 
-## :question: FAQ
-
-1. When running the continuous deployment pipeline, I get an error stating: `No Step found for the name mlflow_deployer`.
-
-   Solution: It happens because your artifact store is overridden after running the continuous deployment pipeline. So, you need to delete the artifact store and rerun the pipeline. You can get the location of the artifact store by running the following command:
-
-   ```bash
-   zenml artifact-store describe
-   ```
-
-   and then you can delete the artifact store with the following command:
-
-   **Note**: This is a dangerous / destructive command! Please enter your path carefully, otherwise it may delete other folders from your computer.
-
-   ```bash
-   rm -rf PATH
-   ```
-
-2. When running the continuous deployment pipeline, I get the following error: `No Environment component with name mlflow is currently registered.`
-
-   Solution: You forgot to install the MLflow integration in your ZenML environment. So, you need to install the MLflow integration by running the following command:
-
-   ```bash
-   zenml integration install mlflow -y
-   ```
