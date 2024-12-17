@@ -15,8 +15,7 @@ The purpose of this repository is to demonstrate how [ZenML](https://github.com/
 Let's jump into the Python packages you need. Within the Python environment of your choice, run:
 
 ```bash
-git clone https://github.com/zenml-io/zenml-projects.git
-cd zenml-projects/customer-satisfaction
+https://github.com/Manojgangula20/customer-satisfaction.git
 pip install -r requirements.txt
 ```
 
