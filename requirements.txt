@@ -13,4 +13,9 @@ matplotlib
 
 
 
-#mlflow ui --backend-store-uri "file:C:\Users\manoj\AppData\Roaming\zenml\local_stores\4c4601ce-a82d-4611-a4db-6be20f7ee2ac\mlruns"
+#mlflow ui --backend-store-uri "file:C:\Users\manoj\AppData\Roaming\zenml\local_stores\3b296eea-aa44-42ca-beab-b8e4068563ec\mlruns"
+
+#mlflow models build-docker -m "file:C:\Users\manoj\AppData\Roaming\zenml\local_stores\3b296eea-aa44-42ca-beab-b8e4068563ec\mlruns" -n customer_satisfaction
+
+#mlflow models serve -m 'runs:/e09cd168c8fb439fb65fa69ed0b81ca9/model' -p 5000 --host 0.0.0.0
+

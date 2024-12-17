@@ -1,24 +1,27 @@
+from steps.clean_data import clean_data
+from steps.evaluation import evaluation
+from steps.ingest_data import ingest_data  # Import the function explicitly
+from steps.model_promoter import model_promoter
+from steps.train_model import train_model
 from zenml import pipeline
-from steps.ingest_data import ingest_df
-from steps.clean_data import clean_df
-from steps.model_train import train_model
-from steps.evaluation import evaluate_model
 
 
-@pipeline(enable_cache=True)
-def train_pipeline(data_path:str):
-    """
+@pipeline
+def customer_satisfaction_training_pipeline(model_type: str = "lightgbm"):
+    """Training Pipeline.
+
     Args:
-        ingest_data: DataClass
-        clean_data: DataClass
-        model_train: DataClass
-        evaluation: DataClass
-    Returns:
-        mse: float
-        rmse: float
+        model_type: str - available options ["lightgbm", "randomforest", "xgboost"]
     """
-    df= ingest_df(data_path)
-    X_train,X_test, y_train, y_test = clean_df(df)
-    model = train_model(X_train, X_test, y_train, y_test)
-    r2_score, rmse = evaluate_model(model,X_test,y_test)
-
+    df = ingest_data()
+    x_train, x_test, y_train, y_test = clean_data(df)
+    model = train_model(
+        x_train=x_train,
+        x_test=x_test,
+        y_train=y_train,
+        y_test=y_test,
+        model_type=model_type,
+    )
+    mse, rmse = evaluation(model, x_test, y_test)
+    is_promoted = model_promoter(mse=mse)
+    return model, is_promoted

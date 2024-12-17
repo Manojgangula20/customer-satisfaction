@@ -1,7 +1,7 @@
 import logging
 
 import pytest
-from src.data_cleaning import DataCleaning
+from model.data_cleaning import DataCleaning
 from steps.ingest_data import IngestData
 from zenml.steps import step
 

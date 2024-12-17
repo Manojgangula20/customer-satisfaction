@@ -1,101 +1,82 @@
-from typing import cast
-
 import click
-from pipelines.deployment_pipeline import (continuous_deployment_pipeline, inference_pipeline, )
-    
-
+from pipelines.deployment_pipeline import (
+    continuous_deployment_pipeline,
+    inference_pipeline,
+)
 from rich import print
 from zenml.integrations.mlflow.mlflow_utils import get_tracking_uri
 from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
     MLFlowModelDeployer,
 )
-from zenml.integrations.mlflow.services import MLFlowDeploymentService
-
-DEPLOY = "deploy"
-PREDICT = "predict"
-DEPLOY_AND_PREDICT = "deploy_and_predict"
 
 
 @click.command()
 @click.option(
-    "--config",
-    "-c",
-    type=click.Choice([DEPLOY, PREDICT, DEPLOY_AND_PREDICT]),
-    default=DEPLOY_AND_PREDICT,
-    help="Optionally you can choose to only run the deployment "
-    "pipeline to train and deploy a model (`deploy`), or to "
-    "only run a prediction against the deployed model "
-    "(`predict`). By default both will be run "
-    "(`deploy_and_predict`).",
+    "--stop-service",
+    is_flag=True,
+    default=False,
+    help="Stop the prediction service when done",
 )
 @click.option(
-    "--min-accuracy",
-    default=0,
-    help="Minimum accuracy required to deploy the model",
+    "--model_type",
+    "-m",
+    type=click.Choice(["lightgbm", "randomforest"]),#, "xgboost"]),
+    default="randomforest",
+    help="Here you can choose what type of model should be trained.",
 )
-def main(config: str, min_accuracy: float):
-    """Run the MLflow example pipeline."""
-    # get the MLflow model deployer stack component
-    mlflow_model_deployer_component = MLFlowModelDeployer.get_active_model_deployer()
-    deploy = config == DEPLOY or config == DEPLOY_AND_PREDICT
-    predict = config == PREDICT or config == DEPLOY_AND_PREDICT
+def run_main(
+    stop_service: bool,
+    model_type: str,
+    model_name="Customer_Satisfaction_Predictor",
+):
+    """Run the mlflow example pipeline"""
+    if stop_service:
+        # get the MLflow model deployer stack component
+        model_deployer = MLFlowModelDeployer.get_active_model_deployer()
 
-    if deploy:
-        # Initialize a continuous deployment pipeline run
-        continuous_deployment_pipeline(
-            data_path= "D:\ml projects\customer-satisfaction\data\olist_customers_dataset.csv",
-            min_accuracy=min_accuracy,
-            workers=1,
-            timeout=60,
+        # fetch existing services with same pipeline name, step name and model name
+        existing_services = model_deployer.find_model_server(
+            pipeline_name="continuous_deployment_pipeline",
+            pipeline_step_name="model_deployer",
+            model_name=model_name,
+            running=True,
         )
 
-    if predict:
-        #Initialize an inference pipeline run
-        inference_pipeline(
-            pipeline_name = "contiuous_deployment_pipeline",
-            pipeline_step_name = "mlflow_model_deployer_step",
-         )
+        if existing_services:
+            existing_services[0].stop(timeout=10)
+        return
+
+    continuous_deployment_pipeline.with_options(config_path="config.yaml")(
+        model_type=model_type
+    )
+
+    model_deployer = MLFlowModelDeployer.get_active_model_deployer()
+
+    inference_pipeline()
 
     print(
-        "You can run:\n "
-        f"[italic green]    mlflow ui --backend-store-uri '{get_tracking_uri()}"
-        "[/italic green]\n ...to inspect your experiment runs within the MLflow"
-        " UI.\nYou can find your runs tracked within the "
-        "`mlflow_example_pipeline` experiment. There you'll also be able to "
-        "compare two or more runs.\n\n"
+        "Now run \n "
+        f"    mlflow ui --backend-store-uri {get_tracking_uri()}\n"
+        "To inspect your experiment runs within the mlflow UI.\n"
+        "You can find your runs tracked within the `mlflow_example_pipeline`"
+        "experiment. Here you'll also be able to compare the two runs.)"
     )
 
     # fetch existing services with same pipeline name, step name and model name
-    existing_services = mlflow_model_deployer_component.find_model_server(
+    service = model_deployer.find_model_server(
         pipeline_name="continuous_deployment_pipeline",
         pipeline_step_name="mlflow_model_deployer_step",
-        model_name="model",
     )
 
-    if existing_services:
-        service = cast(MLFlowDeploymentService, existing_services[0])
-        if service.is_running:
-            print(
-                f"The MLflow prediction server is running locally as a daemon "
-                f"process service and accepts inference requests at:\n"
-                f"    {service.prediction_url}\n"
-                f"To stop the service, run "
-                f"[italic green]`zenml model-deployer models delete "
-                f"{str(service.uuid)}`[/italic green]."
-            )
-        elif service.is_failed:
-            print(
-                f"The MLflow prediction server is in a failed state:\n"
-                f" Last state: '{service.status.state.value}'\n"
-                f" Last error: '{service.status.last_error}'"
-            )
-    else:
+    if service[0]:
         print(
-            "No MLflow prediction server is currently running. The deployment "
-            "pipeline must run first to train a model and deploy it. Execute "
-            "the same command with the `--deploy` argument to deploy a model."
+            f"The MLflow prediction server is running locally as a daemon "
+            f"process and accepts inference requests at:\n"
+            f"    {service[0].prediction_url}\n"
+            f"To stop the service, re-run the same command and supply the "
+            f"`--stop-service` argument."
         )
 
 
 if __name__ == "__main__":
-    main()
+    run_main()
