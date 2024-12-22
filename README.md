@@ -16,6 +16,11 @@ Let's jump into the Python packages you need. Within the Python environment of y
 
 ```bash
 https://github.com/Manojgangula20/customer-satisfaction.git
+
+python3 -m venv venv
+
+source venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
@@ -24,7 +29,8 @@ to observe your stacks, stack components and pipeline DAGs in a dashboard interf
 
 ```bash
 pip install zenml["server"]
-zenml up
+
+zenml login --local
 ```
 
 If you are running the `run_deployment.py` script, you will also need to install some integrations using ZenML:
@@ -37,9 +43,9 @@ The project can only be executed with a ZenML stack that has an MLflow experimen
 
 ```bash
 zenml integration install mlflow -y
-zenml experiment-tracker register mlflow_tracker --flavor=mlflow
+zenml experiment-tracker register mlflow_tracker_cust --flavor=mlflow
 zenml model-deployer register mlflow_cust --flavor=mlflow
-zenml stack register mlflow_stack -a default -o default -d mlflow_cust -e mlflow_tracker --set
+zenml stack register mlflow_stack -a default -o default -d mlflow_cust -e mlflow_tracker_cust --set
 #To delete the objects created by this command run, please run in a sequence:                                                                         
 
 zenml stack delete -y mlflow_stack
